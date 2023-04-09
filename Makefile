@@ -42,16 +42,16 @@ grafana:
 	kubectl apply -f ./kubernetes/prometheus/grafana/grafana.yaml 
 
 delete:
+	kubectl delete -f ./kubernetes/prometheus/grafana/grafana.yaml 
+	kubectl delete -f ./kubernetes/prometheus/serviceMonitor/.
+	kubectl delete -f ./kubernetes/prometheus/serviceAccount.yaml
+	kubectl delete -f ./kubernetes/prometheus/clusterRoleBinding.yaml
+	kubectl delete -f ./kubernetes/prometheus/clusterRole.yaml
+	kubectl delete -f ./kubernetes/prometheus/prometheus.yaml
+	kubectl delete -f ./kubernetes/prometheus/bundle.yaml 
+	kubectl delete -f ./kubernetes/node-exporter/.
+	kubectl delete -f ./kubernetes/components.yaml
 	kubectl delete -f ./kubernetes/ingress.yaml
 	kubectl delete -f ./kubernetes/service_deploy.yaml
 	kubectl delete -f ./kubernetes/config.yaml
 	kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
-	kubectl delete -f ./kubernetes/components.yaml
-	kubectl delete -f ./kubernetes/node-exporter/.
-	kubectl delete -f ./kubernetes/prometheus/bundle.yaml 
-	kubectl delete -f ./kubernetes/prometheus/prometheus.yaml
-	kubectl delete -f ./kubernetes/prometheus/clusterRole.yaml
-	kubectl delete -f ./kubernetes/prometheus/clusterRoleBinding.yaml
-	kubectl delete -f ./kubernetes/prometheus/serviceAccount.yaml
-	kubectl delete -f ./kubernetes/prometheus/serviceMonitor/.
-	kubectl delete -f ./kubernetes/prometheus/grafana/grafana.yaml 
