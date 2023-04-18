@@ -20,6 +20,10 @@ spec:
           ports:
             - name: http
               containerPort: 80
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
@@ -68,6 +72,10 @@ spec:
           ports:
             - name: http
               containerPort: 8000
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
       volumes:
         - name: app-data
           emptyDir: {}

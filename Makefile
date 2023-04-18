@@ -55,3 +55,6 @@ delete:
 	kubectl delete -f ./kubernetes/service_deploy.yaml
 	kubectl delete -f ./kubernetes/config.yaml
 	kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
+
+install:
+	ingress-controller ingress config run-kube metrics state-metric node-exporter prometheus serviceMonitor grafana
