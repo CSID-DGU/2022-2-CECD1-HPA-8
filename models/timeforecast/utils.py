@@ -30,14 +30,19 @@ with open('scalerX.pkl', 'rb') as f:
 with open('scalerY.pkl', 'rb') as f:
     scalerY = pickle.load(f)
 
-network_max = 2000
-memory_max = 2000
-vm_min = 1
 
 seq_length = 10              # n_timesteps
 data_dim = 2                # n_features
 hidden_dim = 50             
 output_dim = 1              # n_outputs
+
+network_max = 1000       # Guess
+memory_max = 67108864
+vm_min = 1
+
+model = BiLSTM(data_dim, hidden_dim, seq_length, output_dim, 1)
+model.load_state_dict(torch.load('new_bi_lstm_model3.pt'))
+model.eval()
 
 def planning(input, now_vm):
     result = 0
@@ -52,13 +57,13 @@ def planning(input, now_vm):
     return result
 
 
-def check():
-    now_memory = 0.5
-    now_network = 1
-    now_vm = 2
+def check(now_vm, network):
+    new_vm = now_vm
     
-    if now_memory > 0.7 or now_memory < 0.3:
-        planning(now_network, now_vm)
+    if network//network_max > now_vm:
+        new_vm = planning(network, now_vm)
+    return new_vm
+    
 
 
 def prediction(now_vm):
@@ -69,11 +74,6 @@ def prediction(now_vm):
     dataX_reshaped = result.reshape(-1, 2)
     dataX_scaled = scalerX.fit_transform(dataX_reshaped)
     target = dataX_scaled.reshape(result.shape)
-
-    model = BiLSTM(data_dim, hidden_dim, seq_length, output_dim, 1)
-    model.load_state_dict(torch.load('./timeforecast/bi_lstm_model.pt'))
-    model.eval()
-
 
     target = torch.FloatTensor(target)
     target = target.reshape([1, seq_length, data_dim])
@@ -88,7 +88,45 @@ def prediction(now_vm):
 
     planning(result, now_vm)
 
+def predict(test_data, test_label):
+
+    testX_tensor = torch.FloatTensor(test_data)
+    testY_tensor = torch.FloatTensor(test_label)
+    pred_now_vm = vm_min
+    true_now_vm = vm_min
+    with torch.no_grad():
+        pred = []
+        pred_vm = []
+        true_vm = []
+        fixed_vm = []
+        temp = 0
+        for pr in range(len(testX_tensor)):
+            temp+=1
+            
+            model.reset_hidden_state()
+
+            predicted = model(torch.unsqueeze(testX_tensor[pr], 0))
+            predicted = torch.flatten(predicted).item()
+            
+            pred.append(predicted)
+
+            pred_inverse = scalerY.inverse_transform(np.array(predicted).reshape(-1, 1))
+            testY_inverse = scalerY.inverse_transform(testY_tensor[pr].reshape(-1, 1))
+            
+            pred_now_vm = planning(pred_inverse,pred_now_vm)
+            true_now_vm = planning(testY_inverse,true_now_vm)
+
+            pred_vm.append(pred_now_vm)
+            true_vm.append(true_now_vm)
+
+            if temp == 5:
+                fixed_vm.append(pred_now_vm)
+                fixed_now_vm = pred_now_vm
+                temp = 0
+            else:
+                fixed_now_vm = check(fixed_now_vm, testY_inverse)
+                fixed_vm.append(fixed_now_vm)
 
 
 if __name__ == "__main__":
-    prediction()
+    prediction(vm_min)
